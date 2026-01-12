@@ -1,1 +1,3 @@
+pyserini          # for retrieval
+sentence-transformers  # for reranking
 
