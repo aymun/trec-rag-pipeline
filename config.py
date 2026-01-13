@@ -1,66 +1,16 @@
-# config.py
 import os
 
-# =========================
-# Paths
-# =========================
+# Index path
+INDEX_DIR = "/users/40659055/sharedscratch/pyserini_indexes/msmarco-v2.1-doc-segmented/lucene-inverted.msmarco-v2.1-doc-segmented.20240418.4f9675"
 
-# Location of the MS MARCO index (prebuilt in shared scratch)
-INDEX_DIR = "/users/40659055/sharedscratch/pyserini_indexes/msmarco-v2.1-doc-segmented"
+# Output folder
+OUTPUT_DIR = "/users/40659055/sharedscratch/trec-rag-pipeline/outputs"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+os.makedirs(os.path.join(OUTPUT_DIR, "retrieval"), exist_ok=True)
+os.makedirs(os.path.join(OUTPUT_DIR, "rerank"), exist_ok=True)
+os.makedirs(os.path.join(OUTPUT_DIR, "generation"), exist_ok=True)
 
-# Output folder for pipeline results
-OUTPUT_DIR = "/users/40659055/sharedscratch/trec_rag_outputs"
-
-# Stage-specific subfolders
-RETRIEVAL_OUTPUT_DIR = os.path.join(OUTPUT_DIR, "retrieval")
-RERANK_OUTPUT_DIR   = os.path.join(OUTPUT_DIR, "rerank")
-GEN_OUTPUT_DIR      = os.path.join(OUTPUT_DIR, "generation")
-
-# Create folders if they don't exist
-for d in [RETRIEVAL_OUTPUT_DIR, RERANK_OUTPUT_DIR, GEN_OUTPUT_DIR]:
-    os.makedirs(d, exist_ok=True)
-
-# =========================
 # Retrieval settings
-# =========================
-
-# Number of documents retrieved per query from Lucene/BM25 index
-TOP_K_RETRIEVE = 100
-
-# =========================
-# Reranking settings
-# =========================
-
-# Number of documents selected after reranking
-TOP_K_RERANK = 10
-
-# Cross-encoder / sentence-transformer model for reranking
-# e.g., 'cross-encoder/ms-marco-MiniLM-L-6-v2'
-RERANK_MODEL_NAME = "cross-encoder/ms-marco-MiniLM-L-6-v2"
-
-# =========================
-# Generation settings
-# =========================
-
-# Number of top reranked documents to feed into the generator
-TOP_K_GENERATE = 5
-
-# Generative model for RAG
-# e.g., 'facebook/rag-token-base' or any LLM
-GEN_MODEL_NAME = "facebook/rag-token-base"
-
-# Maximum length of generated answer
-GEN_MAX_LENGTH = 256
-
-# Device for generation ('cuda' for GPU, 'cpu' for CPU)
-GEN_DEVICE = "cuda"
-
-# =========================
-# Other settings
-# =========================
-
-# Batch size for generation
-GEN_BATCH_SIZE = 4
-
-# Logging verbosity
-VERBOSE = True
+TOP_K_RETRIEVE = 100    # retrieve top 100 docs per query
+TOP_K_RERANK = 10       # rerank top 100 and keep top 10
+TOP_K_GENERATE = 5      # number of docs to feed to generator per query
