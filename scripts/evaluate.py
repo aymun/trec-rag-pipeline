@@ -1,39 +1,55 @@
 # scripts/evaluate.py
-
-import argparse
 import pytrec_eval
-import numpy as np
+import json
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--qrels", required=True, help="Path to qrels file (TREC format)")
-    parser.add_argument("--run", required=True, help="Path to retrieval run file")
-    args = parser.parse_args()
+# Paths
+qrels_file = "data/trec2024_qrels.txt"
+run_file = "outputs/retrieval/retrieval_results.txt"
+output_file = "outputs/retrieval/evaluation_summary.txt"
 
-    # Load qrels and run
-    with open(args.qrels) as f:
-        qrels = pytrec_eval.parse_qrel(f)
+# Load qrels (ensure relevance labels are integers)
+qrels = {}
+with open(qrels_file) as f:
+    for line in f:
+        parts = line.strip().split()
+        if len(parts) < 4:
+            continue
+        qid, _, docid, rel = parts[0], parts[1], parts[2], int(parts[3])
+        if qid not in qrels:
+            qrels[qid] = {}
+        qrels[qid][docid] = rel
 
-    with open(args.run) as f:
-        run = pytrec_eval.parse_run(f)
+# Load run file
+run = {}
+with open(run_file) as f:
+    for line in f:
+        parts = line.strip().split()
+        if len(parts) < 6:
+            continue
+        qid, _, docid, rank, score, _ = parts
+        if qid not in run:
+            run[qid] = {}
+        run[qid][docid] = float(score)
 
-    # Set metrics
-    metrics_to_compute = {'map', 'ndcg', 'recip_rank'}
-    evaluator = pytrec_eval.RelevanceEvaluator(qrels, metrics_to_compute)
+# Evaluate
+evaluator = pytrec_eval.RelevanceEvaluator(qrels, {'map', 'ndcg', 'recip_rank'})
+results = evaluator.evaluate(run)
 
-    # Evaluate
-    results = evaluator.evaluate(run)
+# Compute averages
+avg_map = sum([r['map'] for r in results.values()]) / len(results)
+avg_ndcg = sum([r['ndcg'] for r in results.values()]) / len(results)
+avg_rr = sum([r['recip_rank'] for r in results.values()]) / len(results)
 
-    # Print per-query metrics
-    print("Per-query metrics:")
-    for qid, metrics in results.items():
-        print(f"{qid}: {metrics}")
+summary = f"""
+Average metrics over all queries:
+map: {avg_map:.4f}
+ndcg: {avg_ndcg:.4f}
+recip_rank: {avg_rr:.4f}
+"""
 
-    # Compute and print average metrics
-    print("\nAverage metrics over all queries:")
-    for metric in metrics_to_compute:
-        avg = np.mean([metrics[metric] for metrics in results.values()])
-        print(f"{metric}: {avg:.4f}")
+# Save to file
+with open(output_file, "w") as f:
+    f.write(summary)
 
-if __name__ == "__main__":
-    main()
+# Print to console
+print(summary)
