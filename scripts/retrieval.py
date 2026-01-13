@@ -26,7 +26,7 @@ def main():
 
     with open(args.output, "w") as out:
         for q in queries:
-            qid = q["query_id"]      # TREC format
+            qid = q["id"]      # TREC format
             query_text = q["query"]
 
             hits = searcher.search(query_text, k=args.topk)
