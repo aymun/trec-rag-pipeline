@@ -1,6 +1,7 @@
 import argparse
 import json
-from pyserini.search import SimpleSearcher
+import os
+from pyserini.search.lucene import LuceneSearcher
 
 def main():
     parser = argparse.ArgumentParser()
@@ -17,15 +18,19 @@ def main():
             q = json.loads(line)
             queries.append(q)
 
-    # Initialize Pyserini searcher
-    searcher = SimpleSearcher(args.index)
+    print("Loading MS MARCO index...")
+    searcher = LuceneSearcher(args.index)
+    searcher.set_bm25(k1=0.9, b=0.4)
 
-    # Open output file
+    os.makedirs(os.path.dirname(args.output), exist_ok=True)
+
     with open(args.output, "w") as out:
         for q in queries:
-            qid = q["id"]
+            qid = q["query_id"]      # TREC format
             query_text = q["query"]
+
             hits = searcher.search(query_text, k=args.topk)
+
             for rank, hit in enumerate(hits):
                 out.write(f"{qid} Q0 {hit.docid} {rank+1} {hit.score:.4f} bm25\n")
 
@@ -33,4 +38,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
