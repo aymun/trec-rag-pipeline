@@ -1,3 +1,15 @@
-pyserini          # for retrieval
-sentence-transformers  # for reranking
+# retrieval
+pyserini==1.4.0
 
+# reranking - bi-encoder & cross-encoder
+sentence-transformers
+cross-encoder
+faiss-cpu
+torch
+
+# generation / LLM
+transformers==4.44.2
+pyjnius
+
+# optional
+datasets
